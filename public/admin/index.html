@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amell Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="admin-body">
+  <div id="loginView">
+    <div class="login-box">
+      <h2>Amell Admin</h2>
+      <div id="loginError"></div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="username" value="admin">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" value="amell2026">
+      </div>
+      <button class="btn" onclick="login()">Login</button>
+    </div>
+  </div>
+
+  <div id="adminView" style="display:none">
+    <div class="admin-header">
+      <h1>Amell In Dar – Admin</h1>
+      <button class="btn-sm btn-delete" onclick="logout()">Logout</button>
+    </div>
+    <div class="admin-nav">
+      <button class="active" onclick="showSection('items', this)">Menu Items</button>
+      <button onclick="showSection('categories', this)">Categories</button>
+      <button onclick="showSection('events', this)">Events</button>
+      <button onclick="showSection('gym', this)">Gym Packages</button>
+      <button onclick="showSection('reservations', this)">Reservations</button>
+      <button onclick="showSection('settings', this)">Settings</button>
+    </div>
+
+    <!-- Menu Items -->
+    <div id="sec-items" class="admin-section active">
+      <button class="btn-add" onclick="addItem()">+ Add Menu Item</button>
+      <table class="admin-table" id="itemsTable">
+        <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Available</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Categories -->
+    <div id="sec-categories" class="admin-section">
+      <button class="btn-add" onclick="addCategory()">+ Add Category</button>
+      <table class="admin-table" id="catsTable">
+        <thead><tr><th>Name</th><th>Order</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Events -->
+    <div id="sec-events" class="admin-section">
+      <button class="btn-add" onclick="addEvent()">+ Add Event</button>
+      <table class="admin-table" id="eventsTable">
+        <thead><tr><th>Title</th><th>Date</th><th>Time</th><th>Active</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Gym -->
+    <div id="sec-gym" class="admin-section">
+      <button class="btn-add" onclick="addGym()">+ Add Package</button>
+      <table class="admin-table" id="gymTable">
+        <thead><tr><th>Name</th><th>Price</th><th>Pool</th><th>Active</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Reservations -->
+    <div id="sec-reservations" class="admin-section">
+      <table class="admin-table" id="resTable">
+        <thead><tr><th>Name</th><th>Phone</th><th>Service</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Settings -->
+    <div id="sec-settings" class="admin-section">
+      <div class="form-group">
+        <label>WhatsApp Number (with country code, no +)</label>
+        <input type="text" id="set_whatsapp" placeholder="255679770888">
+      </div>
+      <div class="form-group">
+        <label>Phone Display</label>
+        <input type="text" id="set_phone" placeholder="+255 679 770 888">
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" id="set_address">
+      </div>
+      <div class="form-group">
+        <label>Gym Hours</label>
+        <input type="text" id="set_gym_hours">
+      </div>
+      <div class="form-group">
+        <label>Restaurant Hours</label>
+        <input type="text" id="set_restaurant_hours">
+      </div>
+      <button class="btn" onclick="saveSettings()" style="max-width:200px">Save Settings</button>
+    </div>
+  </div>
+
+  <script src="/js/store.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>
