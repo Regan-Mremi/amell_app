@@ -243,32 +243,40 @@ function deleteGym(id) {
   loadGym();
 }
 
-function loadReservations() {
-  const list = AmellStore.get().reservations;
-  document.querySelector('#resTable tbody').innerHTML = list.length ? list.map(r =>
-    '<tr><td>' + escapeHtml(r.full_name) + '</td><td>' + escapeHtml(r.phone) + '</td><td>' + escapeHtml(r.service_type) + '</td><td>' + (r.reservation_date || '') + ' ' + (r.reservation_time || '') + '</td><td>' + r.status + '</td><td>' +
-    '<button class="btn-sm btn-save" onclick="setResStatus(' + r.id + ',\'confirmed\')">Confirm</button> ' +
-    '<button class="btn-sm btn-edit" onclick="setResStatus(' + r.id + ',\'cancelled\')">Cancel</button> ' +
-    '<button class="btn-sm btn-delete" onclick="deleteReservation(' + r.id + ')">Delete</button></td></tr>'
-  ).join('') : '<tr><td colspan="6">No reservations yet</td></tr>';
-}
-
-function setResStatus(id, status) {
-  const d = AmellStore.get();
-  const r = d.reservations.find(x => x.id === id);
-  if (r) {
-    r.status = status;
-    AmellStore.set(d);
-    loadReservations();
+async function loadReservations() {
+  const tbody = document.querySelector('#resTable tbody');
+  tbody.innerHTML = '<tr><td colspan="6">Loading…</td></tr>';
+  try {
+    const list = await sbGetReservations();
+    tbody.innerHTML = list.length ? list.map(r =>
+      '<tr><td>' + escapeHtml(r.full_name) + '</td><td>' + escapeHtml(r.phone) + '</td><td>' + escapeHtml(r.service_type) + '</td><td>' + (r.reservation_date || '') + ' ' + (r.reservation_time || '') + '</td><td>' + r.status + '</td><td>' +
+      '<button class="btn-sm btn-save" onclick="setResStatus(' + r.id + ',\'confirmed\')">Confirm</button> ' +
+      '<button class="btn-sm btn-edit" onclick="setResStatus(' + r.id + ',\'cancelled\')">Cancel</button> ' +
+      '<button class="btn-sm btn-delete" onclick="deleteReservation(' + r.id + ')">Delete</button></td></tr>'
+    ).join('') : '<tr><td colspan="6">No reservations yet</td></tr>';
+  } catch (e) {
+    console.error(e);
+    tbody.innerHTML = '<tr><td colspan="6">Could not load reservations. Check internet.</td></tr>';
   }
 }
 
-function deleteReservation(id) {
+async function setResStatus(id, status) {
+  try {
+    await sbUpdateReservation(id, status);
+    loadReservations();
+  } catch (e) {
+    alert('Failed to update status');
+  }
+}
+
+async function deleteReservation(id) {
   if (!confirm('Delete this reservation permanently?')) return;
-  const d = AmellStore.get();
-  d.reservations = d.reservations.filter(x => x.id !== id);
-  AmellStore.set(d);
-  loadReservations();
+  try {
+    await sbDeleteReservation(id);
+    loadReservations();
+  } catch (e) {
+    alert('Failed to delete');
+  }
 }
 
 function loadSettings() {

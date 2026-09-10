@@ -137,11 +137,19 @@ document.getElementById('reservationForm')?.addEventListener('submit', async (e)
   msg.innerHTML = '';
   const data = Object.fromEntries(new FormData(form));
   try {
-    AmellStore.addReservation(data);
+    await sbCreateReservation(data);
     msg.innerHTML = '<div class="success-msg">Reservation request received! We will confirm shortly via phone or WhatsApp.</div>';
     form.reset();
   } catch (err) {
-    msg.innerHTML = '<div class="error-msg">Please try WhatsApp instead.</div>';
+    console.error(err);
+    // fallback to local if offline
+    try {
+      AmellStore.addReservation(data);
+      msg.innerHTML = '<div class="success-msg">Reservation saved offline. We will confirm shortly.</div>';
+      form.reset();
+    } catch {
+      msg.innerHTML = '<div class="error-msg">Please try WhatsApp instead.</div>';
+    }
   }
   btn.disabled = false;
   btn.textContent = 'Request Reservation';
