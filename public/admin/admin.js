@@ -1,5 +1,3 @@
-// Amell Admin – pure localStorage (no backend needed)
-
 function showLogin() {
   document.getElementById('loginView').style.display = 'block';
   document.getElementById('adminView').style.display = 'none';
@@ -248,7 +246,8 @@ function loadReservations() {
   document.querySelector('#resTable tbody').innerHTML = list.length ? list.map(r =>
     '<tr><td>' + escapeHtml(r.full_name) + '</td><td>' + escapeHtml(r.phone) + '</td><td>' + escapeHtml(r.service_type) + '</td><td>' + (r.reservation_date || '') + ' ' + (r.reservation_time || '') + '</td><td>' + r.status + '</td><td>' +
     '<button class="btn-sm btn-save" onclick="setResStatus(' + r.id + ',\'confirmed\')">Confirm</button> ' +
-    '<button class="btn-sm btn-delete" onclick="setResStatus(' + r.id + ',\'cancelled\')">Cancel</button></td></tr>'
+    '<button class="btn-sm btn-edit" onclick="setResStatus(' + r.id + ',\'cancelled\')">Cancel</button> ' +
+    '<button class="btn-sm btn-delete" onclick="deleteReservation(' + r.id + ')">Delete</button></td></tr>'
   ).join('') : '<tr><td colspan="6">No reservations yet</td></tr>';
 }
 
@@ -260,6 +259,14 @@ function setResStatus(id, status) {
     AmellStore.set(d);
     loadReservations();
   }
+}
+
+function deleteReservation(id) {
+  if (!confirm('Delete this reservation permanently?')) return;
+  const d = AmellStore.get();
+  d.reservations = d.reservations.filter(x => x.id !== id);
+  AmellStore.set(d);
+  loadReservations();
 }
 
 function loadSettings() {
