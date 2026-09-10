@@ -434,3 +434,31 @@ body {
 @media (min-width: 768px) {
   .home-screen, .page { max-width: 420px; }
 }
+
+/* Menu Food / Drinks tabs */
+.menu-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.menu-tab {
+  flex: 1;
+  padding: 12px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(201,162,39,0.35);
+  background: rgba(11,31,58,0.8);
+  color: var(--gold-light);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.menu-tab.active {
+  background: linear-gradient(135deg, var(--gold), #A8871E);
+  color: var(--navy-deep);
+  border-color: var(--gold);
+}
+.menu-tab:hover:not(.active) {
+  border-color: var(--gold);
+  background: rgba(201,162,39,0.12);
+}

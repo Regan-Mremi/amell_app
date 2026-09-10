@@ -1,4 +1,4 @@
-const CACHE = 'amell-v2';
+const CACHE = 'amell-v3';
 const ASSETS = [
   '/',
   '/index.html',

@@ -1,5 +1,7 @@
 // Amell In Dar – Customer App (pure static + localStorage)
 
+let currentMenuType = 'food';
+
 function showPage(id) {
   document.querySelectorAll('.page, .home-screen').forEach(el => {
     el.classList.remove('active');
@@ -17,7 +19,7 @@ function showPage(id) {
     page.style.display = 'block';
     page.classList.add('active');
     window.scrollTo(0, 0);
-    if (id === 'menu') loadMenu();
+    if (id === 'menu') loadMenu(currentMenuType);
     if (id === 'rooftop') loadRooftop();
     if (id === 'gym') loadGym();
     if (id === 'events') loadEvents();
@@ -33,21 +35,43 @@ async function loadSettings() {
   }
 }
 
-async function loadMenu() {
+function switchMenu(type) {
+  currentMenuType = type;
+  document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+  const active = document.getElementById('tab-' + type);
+  if (active) active.classList.add('active');
+  loadMenu(type);
+}
+
+async function loadMenu(type) {
+  type = type || currentMenuType || 'food';
   const el = document.getElementById('menuContent');
   el.innerHTML = '<div class="loading">Loading menu…</div>';
   try {
-    const categories = AmellStore.getMenu();
+    const categories = AmellStore.getMenu(type);
+    let html = `
+      <div class="menu-tabs">
+        <button id="tab-food" class="menu-tab ${type === 'food' ? 'active' : ''}" onclick="switchMenu('food')">🍽️ Food</button>
+        <button id="tab-drinks" class="menu-tab ${type === 'drinks' ? 'active' : ''}" onclick="switchMenu('drinks')">🍹 Drinks</button>
+      </div>
+    `;
     if (!categories.length) {
-      el.innerHTML = '<div class="info-box">Menu coming soon. Please check back or WhatsApp us.</div>';
+      html += '<div class="info-box">Menu coming soon. Please check back or WhatsApp us.</div>';
+      el.innerHTML = html;
       return;
     }
-    let html = '<div class="info-box">Fresh seasonal dishes • Prices in TZS • Subject to availability</div>';
+    if (type === 'food') {
+      html += '<div class="info-box">Swahili Food Menu • Prices in TZS • Mon–Fri 12:00–15:00 lunch specials available</div>';
+    } else {
+      html += '<div class="info-box">Full drinks menu • Prices in TZS • Subject to availability</div>';
+    }
     categories.forEach(cat => {
       if (!cat.items || !cat.items.length) return;
       html += '<div class="category-title">' + cat.name + '</div>';
       cat.items.forEach(item => {
-        html += '<div class="card"><h3>' + item.name + '</h3><p>' + (item.description || '') + '</p><div class="price">' + (item.price || '') + '</div></div>';
+        html += '<div class="card"><h3>' + item.name + '</h3>' +
+          (item.description ? '<p>' + item.description + '</p>' : '') +
+          '<div class="price">' + (item.price || '') + '</div></div>';
       });
     });
     el.innerHTML = html;
