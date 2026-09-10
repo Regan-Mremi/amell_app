@@ -1,3 +1,5 @@
+// Amell Admin – pure localStorage (no backend needed)
+
 function showLogin() {
   document.getElementById('loginView').style.display = 'block';
   document.getElementById('adminView').style.display = 'none';

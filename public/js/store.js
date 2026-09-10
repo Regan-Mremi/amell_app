@@ -439,9 +439,9 @@
       ],
       gym: [
         { id: 1, name: 'Daily Pass', price: 'TZS 10,000', description: 'Full day access to gym facilities', includes_pool: 0, is_active: 1 },
-        { id: 2, name: 'Monthly Gym Only', price: 'TZS 120,000', description: 'Unlimited gym access for 30 days', includes_pool: 0, is_active: 1 },
+       
         { id: 3, name: 'Monthly Gym + Pool', price: 'TZS 150,000', description: 'Full gym access + swimming pool for 30 days', includes_pool: 1, is_active: 1 },
-        { id: 4, name: 'Personal Training Session', price: 'TZS 40,000', description: 'One-on-one session with certified trainer', includes_pool: 0, is_active: 1 }
+        
       ],
       rooftop: {
         title: 'Rooftop & Pool Experience',
