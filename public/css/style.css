@@ -462,3 +462,24 @@ body {
   border-color: var(--gold);
   background: rgba(201,162,39,0.12);
 }
+
+/* Menu search */
+.menu-search-wrap {
+  margin-bottom: 16px;
+}
+.menu-search {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(11,31,58,0.8);
+  border: 1px solid rgba(201,162,39,0.35);
+  border-radius: 12px;
+  color: var(--ivory);
+  font-size: 15px;
+  outline: none;
+}
+.menu-search:focus {
+  border-color: var(--gold);
+}
+.menu-search::placeholder {
+  color: var(--slate);
+}

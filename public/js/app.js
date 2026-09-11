@@ -1,5 +1,3 @@
-// Amell In Dar – Customer App (pure static + localStorage)
-
 let currentMenuType = 'food';
 
 function showPage(id) {
@@ -40,44 +38,76 @@ function switchMenu(type) {
   document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
   const active = document.getElementById('tab-' + type);
   if (active) active.classList.add('active');
+  const search = document.getElementById('menuSearch');
+  if (search) search.value = '';
   loadMenu(type);
+}
+
+function filterMenu() {
+  const q = (document.getElementById('menuSearch')?.value || '').trim().toLowerCase();
+  const type = currentMenuType || 'food';
+  renderMenuList(type, q);
 }
 
 async function loadMenu(type) {
   type = type || currentMenuType || 'food';
+  currentMenuType = type;
   const el = document.getElementById('menuContent');
   el.innerHTML = '<div class="loading">Loading menu…</div>';
   try {
-    const categories = AmellStore.getMenu(type);
     let html = `
       <div class="menu-tabs">
         <button id="tab-food" class="menu-tab ${type === 'food' ? 'active' : ''}" onclick="switchMenu('food')">🍽️ Food</button>
         <button id="tab-drinks" class="menu-tab ${type === 'drinks' ? 'active' : ''}" onclick="switchMenu('drinks')">🍹 Drinks</button>
       </div>
+      <div class="menu-search-wrap">
+        <input type="search" id="menuSearch" class="menu-search" placeholder="Search food or drink…" oninput="filterMenu()" autocomplete="off">
+      </div>
+      <div id="menuList"></div>
     `;
-    if (!categories.length) {
-      html += '<div class="info-box">Menu coming soon. Please check back or WhatsApp us.</div>';
-      el.innerHTML = html;
-      return;
-    }
-    if (type === 'food') {
-      html += '<div class="info-box">Swahili Food Menu • Prices in TZS • Mon–Fri 12:00–15:00 lunch specials available</div>';
-    } else {
-      html += '<div class="info-box">Full drinks menu • Prices in TZS • Subject to availability</div>';
-    }
-    categories.forEach(cat => {
-      if (!cat.items || !cat.items.length) return;
-      html += '<div class="category-title">' + cat.name + '</div>';
-      cat.items.forEach(item => {
-        html += '<div class="card"><h3>' + item.name + '</h3>' +
-          (item.description ? '<p>' + item.description + '</p>' : '') +
-          '<div class="price">' + (item.price || '') + '</div></div>';
-      });
-    });
     el.innerHTML = html;
+    renderMenuList(type, '');
   } catch (e) {
     el.innerHTML = '<div class="error-msg">Unable to load menu.</div>';
   }
+}
+
+function renderMenuList(type, query) {
+  const listEl = document.getElementById('menuList');
+  if (!listEl) return;
+  const categories = AmellStore.getMenu(type);
+  let html = '';
+  if (type === 'food') {
+    html += '<div class="info-box">Swahili Food Menu • Prices in TZS • Mon–Fri 12:00–15:00 lunch specials available</div>';
+  } else {
+    html += '<div class="info-box">Full drinks menu • Prices in TZS • Subject to availability</div>';
+  }
+  let found = 0;
+  categories.forEach(cat => {
+    if (!cat.items || !cat.items.length) return;
+    const items = query
+      ? cat.items.filter(i =>
+          (i.name || '').toLowerCase().includes(query) ||
+          (i.description || '').toLowerCase().includes(query) ||
+          (cat.name || '').toLowerCase().includes(query)
+        )
+      : cat.items;
+    if (!items.length) return;
+    html += '<div class="category-title">' + cat.name + '</div>';
+    items.forEach(item => {
+      found++;
+      html += '<div class="card"><h3>' + item.name + '</h3>' +
+        (item.description ? '<p>' + item.description + '</p>' : '') +
+        '<div class="price">' + (item.price || '') + '</div></div>';
+    });
+  });
+  if (query && found === 0) {
+    html += '<div class="info-box">No items match "' + query.replace(/</g,'') + '". Try another word.</div>';
+  }
+  if (!query && found === 0) {
+    html = '<div class="info-box">Menu coming soon. Please check back or WhatsApp us.</div>';
+  }
+  listEl.innerHTML = html;
 }
 
 async function loadRooftop() {

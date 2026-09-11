@@ -158,12 +158,53 @@
     </div>
   </div>
 
-  <script src="/js/store.js?v=5"></script>
-  <script src="/js/supabase.js?v=5"></script>
-  <script src="/js/app.js?v=5"></script>
+  <script src="/js/store.js?v=7"></script>
+  <script src="/js/supabase.js?v=7"></script>
+  <script src="/js/app.js?v=7"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('/sw.js?v=7').then(reg => {
+        reg.update();
+        // If a new worker is waiting, activate it and reload once
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version available — reload to pick it up
+              window.location.reload();
+            }
+          });
+        });
+      }).catch(() => {});
+      // When controller changes (new SW took over), reload once
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+    }
+    // One-time cache bust marker
+    if (localStorage.getItem('amell_app_ver') !== '7') {
+      localStorage.setItem('amell_app_ver', '7');
+      // Clear old SW caches via unregister then reload
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          Promise.all(regs.map(r => r.unregister())).then(() => {
+            if ('caches' in window) {
+              caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => {
+                window.location.reload();
+              });
+            } else {
+              window.location.reload();
+            }
+          });
+        });
+      }
     }
   </script>
 </body>

@@ -1,4 +1,3 @@
-// Supabase config for shared reservations
 const SUPABASE_URL = 'https://lfchstxykxtnyienkseh.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmY2hzdHh5a3h0bnlpZW5rc2VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3MTkzNzksImV4cCI6MjEwMTI5NTM3OX0.6IAEYifKKx0XKXTuoi2B0kX2ws-IS0wIw0uu4Lnp3wM';
 
