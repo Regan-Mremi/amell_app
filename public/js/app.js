@@ -1,3 +1,5 @@
+// Amell In Dar – Customer App (pure static + localStorage)
+
 let currentMenuType = 'food';
 
 function showPage(id) {
@@ -25,13 +27,18 @@ function showPage(id) {
 }
 
 async function loadSettings() {
-  const data = AmellStore.getSettings();
+  let data;
+  try { data = await sbGetSettings(); } catch { data = {}; }
+  if (!data || !data.whatsapp_number) {
+    data = { ...AmellStore.getSettings(), ...data };
+  }
   const wa = data.whatsapp_number || '255679770888';
   const btn = document.getElementById('whatsappBtn');
   if (btn) {
     btn.href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent('Hello Amell In Dar, I would like to inquire about...');
   }
 }
+
 
 function switchMenu(type) {
   currentMenuType = type;
@@ -72,10 +79,12 @@ async function loadMenu(type) {
   }
 }
 
-function renderMenuList(type, query) {
+async function renderMenuList(type, query) {
   const listEl = document.getElementById('menuList');
   if (!listEl) return;
-  const categories = AmellStore.getMenu(type);
+  let categories;
+  try { categories = await sbGetMenu(type); }
+  catch { categories = AmellStore.getMenu(type); }
   let html = '';
   if (type === 'food') {
     html += '<div class="info-box">Swahili Food Menu • Prices in TZS • Mon–Fri 12:00–15:00 lunch specials available</div>';
@@ -114,7 +123,9 @@ async function loadRooftop() {
   const el = document.getElementById('rooftopContent');
   el.innerHTML = '<div class="loading">Loading…</div>';
   try {
-    const data = AmellStore.getRooftop();
+    let data = null;
+    try { data = await sbGetRooftop(); } catch {}
+    if (!data) data = AmellStore.getRooftop();
     el.innerHTML = '<div class="card"><h3>' + (data.title || 'Rooftop & Pool') + '</h3><p style="margin-top:10px;line-height:1.6">' + (data.description || '') + '</p><p style="margin-top:14px;color:var(--gold-light)"><strong>Hours:</strong> ' + (data.opening_hours || 'Daily') + '</p></div><div class="info-box">🏊 Crystal-clear rooftop pool<br>🌆 Panoramic Dar es Salaam skyline views<br>🍹 Poolside service available<br>📍 PSSSF Tower, 5th Floor</div><a class="btn" onclick="showPage(\'reservations\')">Reserve Pool / Lounge</a>';
   } catch (e) {
     el.innerHTML = '<div class="error-msg">Unable to load information.</div>';
@@ -125,7 +136,9 @@ async function loadGym() {
   const el = document.getElementById('gymContent');
   el.innerHTML = '<div class="loading">Loading packages…</div>';
   try {
-    const packages = AmellStore.getGym();
+    let packages = [];
+    try { packages = await sbGetGym(true); } catch {}
+    if (!packages.length) packages = AmellStore.getGym();
     let html = '<div class="info-box"><strong>Amell Body Dial Gym</strong><br>Modern equipment • Cardio & strength • Open daily 05:00 – 21:00<br>Insurance accepted: Jubilee, Strategis, AAR, Britam & more</div>';
     packages.forEach(p => {
       html += '<div class="card"><h3>' + p.name + '</h3><p>' + (p.description || '') + '</p>' + (p.includes_pool ? '<p style="color:#6EE7A0;font-size:13px;margin-top:4px">✓ Includes swimming pool access</p>' : '') + '<div class="price">' + p.price + '</div></div>';
@@ -141,7 +154,9 @@ async function loadEvents() {
   const el = document.getElementById('eventsContent');
   el.innerHTML = '<div class="loading">Loading events…</div>';
   try {
-    const events = AmellStore.getEvents();
+    let events = [];
+    try { events = await sbGetEvents(true); } catch {}
+    if (!events.length) events = AmellStore.getEvents();
     if (!events.length) {
       el.innerHTML = '<div class="info-box">No upcoming events published yet. Follow us or WhatsApp for the latest.</div>';
       return;

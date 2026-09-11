@@ -158,12 +158,12 @@
     </div>
   </div>
 
-  <script src="/js/store.js?v=7"></script>
-  <script src="/js/supabase.js?v=7"></script>
-  <script src="/js/app.js?v=7"></script>
+  <script src="/js/store.js?v=8"></script>
+  <script src="/js/supabase.js?v=8"></script>
+  <script src="/js/app.js?v=8"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=7').then(reg => {
+      navigator.serviceWorker.register('/sw.js?v=8').then(reg => {
         reg.update();
         // If a new worker is waiting, activate it and reload once
         if (reg.waiting) {
@@ -189,8 +189,8 @@
       });
     }
     // One-time cache bust marker
-    if (localStorage.getItem('amell_app_ver') !== '7') {
-      localStorage.setItem('amell_app_ver', '7');
+    if (localStorage.getItem('amell_app_ver') !== '8') {
+      localStorage.setItem('amell_app_ver', '8');
       // Clear old SW caches via unregister then reload
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {

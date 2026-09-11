@@ -1,14 +1,14 @@
+// Amell Admin — cloud (Supabase) + local login
+
 function showLogin() {
   document.getElementById('loginView').style.display = 'block';
   document.getElementById('adminView').style.display = 'none';
 }
-
 function showAdmin() {
   document.getElementById('loginView').style.display = 'none';
   document.getElementById('adminView').style.display = 'block';
   loadAll();
 }
-
 function login() {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
@@ -19,12 +19,10 @@ function login() {
     document.getElementById('loginError').innerHTML = '<div class="error-msg">Invalid credentials</div>';
   }
 }
-
 function logout() {
   sessionStorage.removeItem('amell_admin');
   showLogin();
 }
-
 function showSection(name, btn) {
   document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
@@ -34,140 +32,156 @@ function showSection(name, btn) {
 
 let categories = [];
 
-function loadAll() {
-  categories = AmellStore.get().categories;
-  loadItems();
-  loadCategories();
-  loadEvents();
-  loadGym();
-  loadReservations();
-  loadSettings();
+async function loadAll() {
+  try {
+    await sbSeedIfEmpty();
+  } catch (e) {
+    console.warn('Seed skip', e);
+  }
+  await loadCategories();
+  await loadItems();
+  await loadEvents();
+  await loadGym();
+  await loadReservations();
+  await loadSettings();
 }
 
-function loadItems() {
-  const d = AmellStore.get();
-  const items = d.items.map(i => ({
-    ...i,
-    category_name: (d.categories.find(c => c.id === i.category_id) || {}).name || ''
-  }));
-  document.querySelector('#itemsTable tbody').innerHTML = items.map(i =>
-    '<tr><td>' + escapeHtml(i.name) + '</td><td>' + escapeHtml(i.category_name) + '</td><td>' + escapeHtml(i.price || '') + '</td><td>' + (i.is_available ? 'Yes' : 'No') + '</td><td>' +
-    '<button class="btn-sm btn-edit" onclick="editItem(' + i.id + ')">Edit</button> ' +
-    '<button class="btn-sm btn-delete" onclick="deleteItem(' + i.id + ')">Del</button></td></tr>'
-  ).join('');
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function addItem() {
+// ---- Items ----
+async function loadItems() {
+  try {
+    const items = await sbGetItems();
+    const cats = categories.length ? categories : await sbGetCategories();
+    document.querySelector('#itemsTable tbody').innerHTML = items.map(i => {
+      const cat = cats.find(c => Number(c.id) === Number(i.category_id));
+      return '<tr><td>' + escapeHtml(i.name) + '</td><td>' + escapeHtml(cat ? cat.name : '') + '</td><td>' + escapeHtml(i.price || '') + '</td><td>' + (i.is_available ? 'Yes' : 'No') + '</td><td>' +
+        '<button class="btn-sm btn-edit" onclick="editItem(' + i.id + ')">Edit</button> ' +
+        '<button class="btn-sm btn-delete" onclick="deleteItem(' + i.id + ')">Del</button></td></tr>';
+    }).join('') || '<tr><td colspan="5">No items</td></tr>';
+  } catch (e) {
+    document.querySelector('#itemsTable tbody').innerHTML = '<tr><td colspan="5">Error loading items</td></tr>';
+  }
+}
+
+async function addItem() {
   const name = prompt('Item name:');
   if (!name) return;
   const price = prompt('Price (e.g. TZS 25,000):') || '';
   const desc = prompt('Description:') || '';
-  const d = AmellStore.get();
-  const id = d.nextId.items++;
-  d.items.push({
-    id,
-    category_id: categories[0]?.id || 1,
-    name,
-    description: desc,
-    price,
-    is_available: 1
-  });
-  AmellStore.set(d);
-  loadItems();
+  const typeHint = prompt('Type: food or drinks?', 'food') || 'food';
+  const catList = categories.filter(c => c.type === typeHint);
+  const cat = catList[0] || categories[0];
+  if (!cat) { alert('Add a category first'); return; }
+  try {
+    await sbCreateItem({ category_id: cat.id, name, description: desc, price, is_available: 1 });
+    await loadItems();
+  } catch (e) { alert('Failed to add item'); }
 }
 
-function editItem(id) {
-  const d = AmellStore.get();
-  const item = d.items.find(x => x.id === id);
+async function editItem(id) {
+  const items = await sbGetItems();
+  const item = items.find(x => Number(x.id) === Number(id));
   if (!item) return;
   const name = prompt('Name:', item.name);
   if (name === null) return;
   const price = prompt('Price:', item.price || '');
   const desc = prompt('Description:', item.description || '');
   const avail = confirm('Available?') ? 1 : 0;
-  item.name = name;
-  item.price = price;
-  item.description = desc;
-  item.is_available = avail;
-  AmellStore.set(d);
-  loadItems();
+  try {
+    await sbUpdateItem(id, { name, price, description: desc, is_available: avail, category_id: item.category_id });
+    await loadItems();
+  } catch (e) { alert('Failed to update'); }
 }
 
-function deleteItem(id) {
+async function deleteItem(id) {
   if (!confirm('Delete this item?')) return;
-  const d = AmellStore.get();
-  d.items = d.items.filter(x => x.id !== id);
-  AmellStore.set(d);
-  loadItems();
+  try {
+    await sbDeleteItem(id);
+    await loadItems();
+  } catch (e) { alert('Failed to delete'); }
 }
 
-function loadCategories() {
-  categories = AmellStore.get().categories;
-  document.querySelector('#catsTable tbody').innerHTML = categories.map(c =>
-    '<tr><td>' + escapeHtml(c.name) + '</td><td>' + c.sort_order + '</td><td>' +
-    '<button class="btn-sm btn-edit" onclick="editCategory(' + c.id + ')">Edit</button> ' +
-    '<button class="btn-sm btn-delete" onclick="deleteCategory(' + c.id + ')">Del</button></td></tr>'
-  ).join('');
+// ---- Categories ----
+async function loadCategories() {
+  try {
+    categories = await sbGetCategories();
+    document.querySelector('#catsTable tbody').innerHTML = categories.map(c =>
+      '<tr><td>' + escapeHtml(c.name) + '</td><td>' + (c.type || '') + ' / ' + c.sort_order + '</td><td>' +
+      '<button class="btn-sm btn-edit" onclick="editCategory(' + c.id + ')">Edit</button> ' +
+      '<button class="btn-sm btn-delete" onclick="deleteCategory(' + c.id + ')">Del</button></td></tr>'
+    ).join('') || '<tr><td colspan="3">No categories</td></tr>';
+  } catch (e) {
+    document.querySelector('#catsTable tbody').innerHTML = '<tr><td colspan="3">Error loading</td></tr>';
+  }
 }
 
-function addCategory() {
+async function addCategory() {
   const name = prompt('Category name:');
   if (!name) return;
-  const d = AmellStore.get();
-  const id = d.nextId.categories++;
-  d.categories.push({ id, name, sort_order: d.categories.length + 1 });
-  AmellStore.set(d);
-  loadCategories();
+  const type = prompt('Type: food or drinks?', 'food') || 'food';
+  try {
+    await sbCreateCategory({ name, sort_order: categories.length + 1, type });
+    await loadCategories();
+    await loadItems();
+  } catch (e) { alert('Failed to add category'); }
 }
 
-function editCategory(id) {
-  const d = AmellStore.get();
-  const cat = d.categories.find(c => c.id === id);
+async function editCategory(id) {
+  const cat = categories.find(c => Number(c.id) === Number(id));
   if (!cat) return;
   const name = prompt('Name:', cat.name);
   if (name === null) return;
+  const type = prompt('Type food/drinks:', cat.type || 'food');
   const order = prompt('Sort order:', cat.sort_order);
-  cat.name = name;
-  cat.sort_order = parseInt(order) || 0;
-  AmellStore.set(d);
-  loadCategories();
+  try {
+    await sbUpdateCategory(id, { name, type, sort_order: parseInt(order) || 0 });
+    await loadCategories();
+    await loadItems();
+  } catch (e) { alert('Failed to update'); }
 }
 
-function deleteCategory(id) {
+async function deleteCategory(id) {
   if (!confirm('Delete category and all its items?')) return;
-  const d = AmellStore.get();
-  d.categories = d.categories.filter(c => c.id !== id);
-  d.items = d.items.filter(i => i.category_id !== id);
-  AmellStore.set(d);
-  loadCategories();
-  loadItems();
+  try {
+    await sbDeleteCategory(id);
+    await loadCategories();
+    await loadItems();
+  } catch (e) { alert('Failed to delete'); }
 }
 
-function loadEvents() {
-  const events = AmellStore.get().events;
-  document.querySelector('#eventsTable tbody').innerHTML = events.map(e =>
-    '<tr><td>' + escapeHtml(e.title) + '</td><td>' + (e.event_date || '') + '</td><td>' + (e.event_time || '') + '</td><td>' + (e.is_active ? 'Yes' : 'No') + '</td><td>' +
-    '<button class="btn-sm btn-edit" onclick="editEvent(' + e.id + ')">Edit</button> ' +
-    '<button class="btn-sm btn-delete" onclick="deleteEvent(' + e.id + ')">Del</button></td></tr>'
-  ).join('');
+// ---- Events ----
+async function loadEvents() {
+  try {
+    const events = await sbGetEvents(false);
+    document.querySelector('#eventsTable tbody').innerHTML = events.map(e =>
+      '<tr><td>' + escapeHtml(e.title) + '</td><td>' + (e.event_date || '') + '</td><td>' + (e.event_time || '') + '</td><td>' + (e.is_active ? 'Yes' : 'No') + '</td><td>' +
+      '<button class="btn-sm btn-edit" onclick="editEvent(' + e.id + ')">Edit</button> ' +
+      '<button class="btn-sm btn-delete" onclick="deleteEvent(' + e.id + ')">Del</button></td></tr>'
+    ).join('') || '<tr><td colspan="5">No events</td></tr>';
+  } catch (e) {
+    document.querySelector('#eventsTable tbody').innerHTML = '<tr><td colspan="5">Error loading</td></tr>';
+  }
 }
 
-function addEvent() {
+async function addEvent() {
   const title = prompt('Event title:');
   if (!title) return;
   const event_date = prompt('Date (YYYY-MM-DD):') || '';
-  const event_time = prompt('Time (e.g. 21:00):') || '';
+  const event_time = prompt('Time:') || '';
   const description = prompt('Description:') || '';
-  const d = AmellStore.get();
-  const id = d.nextId.events++;
-  d.events.push({ id, title, description, event_date, event_time, is_active: 1 });
-  AmellStore.set(d);
-  loadEvents();
+  try {
+    await sbCreateEvent({ title, description, event_date, event_time, is_active: 1 });
+    await loadEvents();
+  } catch (e) { alert('Failed to add'); }
 }
 
-function editEvent(id) {
-  const d = AmellStore.get();
-  const e = d.events.find(x => x.id === id);
+async function editEvent(id) {
+  const events = await sbGetEvents(false);
+  const e = events.find(x => Number(x.id) === Number(id));
   if (!e) return;
   const title = prompt('Title:', e.title);
   if (title === null) return;
@@ -175,48 +189,49 @@ function editEvent(id) {
   const event_time = prompt('Time:', e.event_time || '');
   const description = prompt('Description:', e.description || '');
   const is_active = confirm('Active?') ? 1 : 0;
-  e.title = title;
-  e.event_date = event_date;
-  e.event_time = event_time;
-  e.description = description;
-  e.is_active = is_active;
-  AmellStore.set(d);
-  loadEvents();
+  try {
+    await sbUpdateEvent(id, { title, event_date, event_time, description, is_active });
+    await loadEvents();
+  } catch (err) { alert('Failed'); }
 }
 
-function deleteEvent(id) {
+async function deleteEvent(id) {
   if (!confirm('Delete this event?')) return;
-  const d = AmellStore.get();
-  d.events = d.events.filter(x => x.id !== id);
-  AmellStore.set(d);
-  loadEvents();
+  try {
+    await sbDeleteEvent(id);
+    await loadEvents();
+  } catch (e) { alert('Failed'); }
 }
 
-function loadGym() {
-  const packages = AmellStore.get().gym;
-  document.querySelector('#gymTable tbody').innerHTML = packages.map(p =>
-    '<tr><td>' + escapeHtml(p.name) + '</td><td>' + escapeHtml(p.price) + '</td><td>' + (p.includes_pool ? 'Yes' : 'No') + '</td><td>' + (p.is_active ? 'Yes' : 'No') + '</td><td>' +
-    '<button class="btn-sm btn-edit" onclick="editGym(' + p.id + ')">Edit</button> ' +
-    '<button class="btn-sm btn-delete" onclick="deleteGym(' + p.id + ')">Del</button></td></tr>'
-  ).join('');
+// ---- Gym ----
+async function loadGym() {
+  try {
+    const packages = await sbGetGym(false);
+    document.querySelector('#gymTable tbody').innerHTML = packages.map(p =>
+      '<tr><td>' + escapeHtml(p.name) + '</td><td>' + escapeHtml(p.price) + '</td><td>' + (p.includes_pool ? 'Yes' : 'No') + '</td><td>' + (p.is_active ? 'Yes' : 'No') + '</td><td>' +
+      '<button class="btn-sm btn-edit" onclick="editGym(' + p.id + ')">Edit</button> ' +
+      '<button class="btn-sm btn-delete" onclick="deleteGym(' + p.id + ')">Del</button></td></tr>'
+    ).join('') || '<tr><td colspan="5">No packages</td></tr>';
+  } catch (e) {
+    document.querySelector('#gymTable tbody').innerHTML = '<tr><td colspan="5">Error loading</td></tr>';
+  }
 }
 
-function addGym() {
+async function addGym() {
   const name = prompt('Package name:');
   if (!name) return;
   const price = prompt('Price:') || '';
   const description = prompt('Description:') || '';
   const includes_pool = confirm('Includes pool?') ? 1 : 0;
-  const d = AmellStore.get();
-  const id = d.nextId.gym++;
-  d.gym.push({ id, name, price, description, includes_pool, is_active: 1 });
-  AmellStore.set(d);
-  loadGym();
+  try {
+    await sbCreateGym({ name, price, description, includes_pool, is_active: 1 });
+    await loadGym();
+  } catch (e) { alert('Failed'); }
 }
 
-function editGym(id) {
-  const d = AmellStore.get();
-  const p = d.gym.find(x => x.id === id);
+async function editGym(id) {
+  const packages = await sbGetGym(false);
+  const p = packages.find(x => Number(x.id) === Number(id));
   if (!p) return;
   const name = prompt('Name:', p.name);
   if (name === null) return;
@@ -224,23 +239,21 @@ function editGym(id) {
   const description = prompt('Description:', p.description || '');
   const includes_pool = confirm('Includes pool?') ? 1 : 0;
   const is_active = confirm('Active?') ? 1 : 0;
-  p.name = name;
-  p.price = price;
-  p.description = description;
-  p.includes_pool = includes_pool;
-  p.is_active = is_active;
-  AmellStore.set(d);
-  loadGym();
+  try {
+    await sbUpdateGym(id, { name, price, description, includes_pool, is_active });
+    await loadGym();
+  } catch (e) { alert('Failed'); }
 }
 
-function deleteGym(id) {
+async function deleteGym(id) {
   if (!confirm('Delete this package?')) return;
-  const d = AmellStore.get();
-  d.gym = d.gym.filter(x => x.id !== id);
-  AmellStore.set(d);
-  loadGym();
+  try {
+    await sbDeleteGym(id);
+    await loadGym();
+  } catch (e) { alert('Failed'); }
 }
 
+// ---- Reservations ----
 async function loadReservations() {
   const tbody = document.querySelector('#resTable tbody');
   tbody.innerHTML = '<tr><td colspan="6">Loading…</td></tr>';
@@ -253,64 +266,53 @@ async function loadReservations() {
       '<button class="btn-sm btn-delete" onclick="deleteReservation(' + r.id + ')">Delete</button></td></tr>'
     ).join('') : '<tr><td colspan="6">No reservations yet</td></tr>';
   } catch (e) {
-    console.error(e);
-    tbody.innerHTML = '<tr><td colspan="6">Could not load reservations. Check internet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6">Could not load reservations</td></tr>';
   }
 }
-
 async function setResStatus(id, status) {
-  try {
-    await sbUpdateReservation(id, status);
-    loadReservations();
-  } catch (e) {
-    alert('Failed to update status');
-  }
+  try { await sbUpdateReservation(id, status); await loadReservations(); }
+  catch (e) { alert('Failed to update'); }
 }
-
 async function deleteReservation(id) {
   if (!confirm('Delete this reservation permanently?')) return;
+  try { await sbDeleteReservation(id); await loadReservations(); }
+  catch (e) { alert('Failed to delete'); }
+}
+
+// ---- Settings ----
+async function loadSettings() {
   try {
-    await sbDeleteReservation(id);
-    loadReservations();
+    const s = await sbGetSettings();
+    const local = AmellStore.getSettings();
+    document.getElementById('set_whatsapp').value = s.whatsapp_number || local.whatsapp_number || '';
+    document.getElementById('set_phone').value = s.phone || local.phone || '';
+    document.getElementById('set_address').value = s.address || local.address || '';
+    document.getElementById('set_gym_hours').value = s.gym_hours || local.gym_hours || '';
+    document.getElementById('set_restaurant_hours').value = s.restaurant_hours || local.restaurant_hours || '';
   } catch (e) {
-    alert('Failed to delete');
+    const s = AmellStore.getSettings();
+    document.getElementById('set_whatsapp').value = s.whatsapp_number || '';
+    document.getElementById('set_phone').value = s.phone || '';
+    document.getElementById('set_address').value = s.address || '';
+    document.getElementById('set_gym_hours').value = s.gym_hours || '';
+    document.getElementById('set_restaurant_hours').value = s.restaurant_hours || '';
   }
 }
-
-function loadSettings() {
-  const s = AmellStore.getSettings();
-  document.getElementById('set_whatsapp').value = s.whatsapp_number || '';
-  document.getElementById('set_phone').value = s.phone || '';
-  document.getElementById('set_address').value = s.address || '';
-  document.getElementById('set_gym_hours').value = s.gym_hours || '';
-  document.getElementById('set_restaurant_hours').value = s.restaurant_hours || '';
-}
-
-function saveSettings() {
-  const d = AmellStore.get();
-  d.settings = {
+async function saveSettings() {
+  const data = {
     whatsapp_number: document.getElementById('set_whatsapp').value,
     phone: document.getElementById('set_phone').value,
     address: document.getElementById('set_address').value,
     gym_hours: document.getElementById('set_gym_hours').value,
     restaurant_hours: document.getElementById('set_restaurant_hours').value
   };
-  AmellStore.set(d);
-  alert('Settings saved');
+  try {
+    await sbSaveSettings(data);
+    alert('Settings saved (all devices)');
+  } catch (e) {
+    alert('Failed to save settings');
+  }
 }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-// Check login on load
-if (sessionStorage.getItem('amell_admin') === '1') {
-  showAdmin();
-} else {
-  showLogin();
-}
+if (sessionStorage.getItem('amell_admin') === '1') showAdmin();
+else showLogin();
