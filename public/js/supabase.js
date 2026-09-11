@@ -23,8 +23,37 @@ async function sbFetch(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+
+// ---------- Notifications (phone push via ntfy) ----------
+// Install free app "ntfy" on your phone and subscribe to topic: amell-dar-bookings
+const NTFY_TOPIC = 'amell-dar-bookings';
+
+async function notifyNewReservation(data) {
+  try {
+    const msg =
+      'New reservation\n' +
+      'Name: ' + (data.full_name || '') + '\n' +
+      'Phone: ' + (data.phone || '') + '\n' +
+      'Service: ' + (data.service_type || '') + '\n' +
+      'Date: ' + (data.reservation_date || '') + ' ' + (data.reservation_time || '') + '\n' +
+      'Guests: ' + (data.guests || 1) + '\n' +
+      (data.notes ? 'Notes: ' + data.notes : '');
+    await fetch('https://ntfy.sh/' + NTFY_TOPIC, {
+      method: 'POST',
+      headers: {
+        'Title': 'Amell In Dar – New Booking',
+        'Priority': 'high',
+        'Tags': 'calendar,bell'
+      },
+      body: msg
+    });
+  } catch (e) {
+    console.warn('Notify failed', e);
+  }
+}
+
 async function sbCreateReservation(data) {
-  return sbFetch('reservations', {
+  const result = await sbFetch('reservations', {
     method: 'POST',
     body: JSON.stringify({
       full_name: data.full_name, phone: data.phone, email: data.email || '',
@@ -33,6 +62,16 @@ async function sbCreateReservation(data) {
       notes: data.notes || '', status: 'pending'
     })
   });
+  notifyNewReservation({
+    full_name: data.full_name,
+    phone: data.phone,
+    service_type: data.service_type,
+    reservation_date: data.reservation_date,
+    reservation_time: data.reservation_time || '',
+    guests: data.guests || 1,
+    notes: data.notes || ''
+  });
+  return result;
 }
 async function sbGetReservations() {
   return (await sbFetch('reservations?select=*&order=created_at.desc')) || [];
