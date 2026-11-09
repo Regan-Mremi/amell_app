@@ -12,7 +12,7 @@ function showAdmin() {
 function login() {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
-  if (username === '' && password === '') {
+  if (username === 'admin' && password === 'amell2026') {
     sessionStorage.setItem('amell_admin', '1');
     showAdmin();
   } else {
