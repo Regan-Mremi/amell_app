@@ -37,7 +37,11 @@ const AmellStore = {
         { id: 24, name: 'Red Wine', sort_order: 27, type: 'drinks' },
         { id: 25, name: 'White Wine', sort_order: 28, type: 'drinks' },
         { id: 26, name: 'Soft Drink', sort_order: 29, type: 'drinks' },
-        { id: 27, name: 'Tea & Coffee', sort_order: 30, type: 'drinks' }
+        { id: 27, name: 'Tea & Coffee', sort_order: 30, type: 'drinks' },
+        { id: 28, name: 'Buckets', sort_order: 31, type: 'drinks' },
+        { id: 29, name: 'Cold Beverages', sort_order: 32, type: 'drinks' },
+        { id: 30, name: 'Hot Beverages', sort_order: 33, type: 'drinks' },
+        { id: 31, name: 'Milk Shakes & Ice Cream', sort_order: 34, type: 'drinks' }
       ],
       items: [
         { id: 1, category_id: 1, name: 'Sato', description: '', price: 'TZS 17,000', is_available: 1 },
@@ -429,10 +433,51 @@ const AmellStore = {
         { id: 405, category_id: 27, name: 'Black Masala Tea', description: '', price: 'TZS 5,000', is_available: 1 },
         { id: 406, category_id: 27, name: 'Cafe Late', description: '', price: 'TZS 6,000', is_available: 1 },
         { id: 407, category_id: 27, name: 'Black Coffee', description: '', price: 'TZS 4,000', is_available: 1 },
-        { id: 408, category_id: 27, name: 'Black Cardamon Tea', description: '', price: 'TZS 3,000', is_available: 1 }
-      
-      ],
-      events: [
+        { id: 408, category_id: 27, name: 'Black Cardamon Tea', description: '', price: 'TZS 3,000', is_available: 1 },
+
+        // Extra items from updated drinks menu
+        { id: 409, category_id: 7, name: 'Castle (Lager/Lite/Can)', description: '', price: 'TZS 34,000', is_available: 1 },
+        { id: 410, category_id: 7, name: 'Windhoek', description: '', price: 'TZS 46,000', is_available: 1 },
+        { id: 411, category_id: 7, name: 'Safari', description: '', price: 'TZS 34,000', is_available: 1 },
+        { id: 412, category_id: 8, name: 'Castle (Lite/Lager)', description: '', price: 'TZS 6,000', is_available: 1 },
+        { id: 413, category_id: 8, name: 'Flying Fish (Can)', description: '', price: 'TZS 7,000', is_available: 1 },
+        { id: 414, category_id: 8, name: 'Kilimanjaro (Lager/Lite/Can)', description: '', price: 'TZS 6,000', is_available: 1 },
+        { id: 415, category_id: 8, name: 'Serengeti (Lager/Lite/Lemon/Apple)', description: '', price: 'TZS 6,000', is_available: 1 },
+        { id: 416, category_id: 9, name: 'Desperados', description: '', price: 'TZS 8,000', is_available: 1 },
+        { id: 417, category_id: 9, name: 'Windhoek', description: '', price: 'TZS 8,000', is_available: 1 },
+        { id: 418, category_id: 11, name: 'Sex on the Beach', description: '', price: 'TZS 15,000', is_available: 1 },
+        { id: 419, category_id: 15, name: 'Bombay Sapphire', description: '', price: 'TZS 140,000', is_available: 1 },
+        { id: 420, category_id: 15, name: 'Bombay Sapphire', description: '', price: 'TZS 110,000', is_available: 1 },
+        { id: 421, category_id: 19, name: 'Johnnie Walker Double Black', description: '', price: 'TZS 260,000', is_available: 1 },
+        { id: 422, category_id: 19, name: 'Johnnie Walker Black Label', description: '', price: 'TZS 180,000', is_available: 1 },
+        { id: 423, category_id: 19, name: 'Johnnie Walker Blue Label', description: '', price: 'TZS 1,100,000', is_available: 1 },
+        { id: 424, category_id: 19, name: 'Johnnie Walker Gold Label', description: '', price: 'TZS 300,000', is_available: 1 },
+        { id: 425, category_id: 19, name: 'Johnnie Walker Green Label', description: '', price: 'TZS 380,000', is_available: 1 },
+        { id: 426, category_id: 19, name: 'Johnnie Walker Red Label', description: '', price: 'TZS 120,000', is_available: 1 },
+        { id: 427, category_id: 20, name: 'Aperol Spritz', description: '', price: 'TZS 20,000', is_available: 1 },
+        { id: 428, category_id: 22, name: 'Veuve Clicquot', description: '', price: 'TZS 600,000', is_available: 1 },
+        { id: 429, category_id: 22, name: 'Armand de Brignac', description: '', price: 'TZS 1,200,000', is_available: 1 },
+        { id: 430, category_id: 22, name: 'Moet & Chandon Imperial Brut', description: '', price: 'TZS 260,000', is_available: 1 },
+        { id: 431, category_id: 23, name: 'Martini Prosecco', description: '', price: 'TZS 100,000', is_available: 1 },
+        { id: 432, category_id: 23, name: 'Martini Asti', description: '', price: 'TZS 85,000', is_available: 1 },
+        { id: 433, category_id: 23, name: 'Martini Rosso', description: '', price: 'TZS 85,000', is_available: 1 },
+        { id: 434, category_id: 23, name: 'Martini Bianco', description: '', price: 'TZS 58,000', is_available: 1 },
+        { id: 435, category_id: 24, name: 'KWV Merlot', description: '', price: 'TZS 65,000', is_available: 1 },
+        { id: 436, category_id: 24, name: 'KWV Cabernet Sauvignon', description: '', price: 'TZS 65,000', is_available: 1 },
+        { id: 437, category_id: 25, name: 'KWV Glenche Blanc', description: '', price: 'TZS 65,000', is_available: 1 },
+        { id: 438, category_id: 28, name: 'Corona Beer', description: '', price: 'TZS 46,000', is_available: 1 },
+        { id: 439, category_id: 28, name: 'Desperado', description: '', price: 'TZS 46,000', is_available: 1 },
+        { id: 440, category_id: 28, name: 'Heineken', description: '', price: 'TZS 46,000', is_available: 1 },
+        { id: 441, category_id: 28, name: 'Savannah Dry', description: '', price: 'TZS 46,000', is_available: 1 },
+        { id: 442, category_id: 28, name: 'Windhoek', description: '', price: 'TZS 46,000', is_available: 1 },
+        { id: 443, category_id: 29, name: 'Soda', description: '', price: 'TZS 4,000', is_available: 1 },
+        { id: 444, category_id: 30, name: 'Black Coffe', description: '', price: 'TZS 4,000', is_available: 1 },
+        { id: 445, category_id: 30, name: 'White Coffe', description: '', price: 'TZS 4,000', is_available: 1 },
+        { id: 446, category_id: 31, name: 'Chocolate Milk Shake', description: '', price: 'TZS 10,000', is_available: 1 },
+        { id: 447, category_id: 31, name: 'Strawberry Milk Shake', description: '', price: 'TZS 10,000', is_available: 1 },
+        { id: 448, category_id: 31, name: 'Vanilla Milkshake', description: '', price: 'TZS 10,000', is_available: 1 },
+        { id: 449, category_id: 31, name: 'Tende Milk Shake', description: '', price: 'TZS 10,000', is_available: 1 }
+      ],      events: [
         { id: 1, title: 'Friday Night Live DJ', description: 'Resident DJ spinning Afrobeats, Amapiano and international hits. Free entry before 22:00.', event_date: '2026-09-11', event_time: '21:00', is_active: 1 },
         { id: 2, title: 'Saturday Sunset Sessions', description: 'Chill electronic and deep house as the sun sets over Dar.', event_date: '2026-09-12', event_time: '17:00', is_active: 1 },
         { id: 3, title: 'Sunday Brunch & Pool Party', description: 'Unlimited brunch package + pool access. Live acoustic set from 13:00.', event_date: '2026-09-13', event_time: '11:00', is_active: 1 }
