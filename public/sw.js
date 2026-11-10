@@ -1,5 +1,5 @@
-// Amell SW v7 — network-first so normal browsers always get latest code
-const CACHE = 'amell-v8';
+// Amell SW v9 — network-first so normal browsers always get latest code
+const CACHE = 'amell-v9';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

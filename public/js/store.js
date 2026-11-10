@@ -477,7 +477,8 @@ const AmellStore = {
         { id: 447, category_id: 31, name: 'Strawberry Milk Shake', description: '', price: 'TZS 10,000', is_available: 1 },
         { id: 448, category_id: 31, name: 'Vanilla Milkshake', description: '', price: 'TZS 10,000', is_available: 1 },
         { id: 449, category_id: 31, name: 'Tende Milk Shake', description: '', price: 'TZS 10,000', is_available: 1 }
-      ],      events: [
+      ],
+      events: [
         { id: 1, title: 'Friday Night Live DJ', description: 'Resident DJ spinning Afrobeats, Amapiano and international hits. Free entry before 22:00.', event_date: '2026-09-11', event_time: '21:00', is_active: 1 },
         { id: 2, title: 'Saturday Sunset Sessions', description: 'Chill electronic and deep house as the sun sets over Dar.', event_date: '2026-09-12', event_time: '17:00', is_active: 1 },
         { id: 3, title: 'Sunday Brunch & Pool Party', description: 'Unlimited brunch package + pool access. Live acoustic set from 13:00.', event_date: '2026-09-13', event_time: '11:00', is_active: 1 }
@@ -501,7 +502,7 @@ const AmellStore = {
         gym_hours: 'Daily 05:00 – 21:00',
         restaurant_hours: 'Daily 10:00 – late'
       },
-      nextId: { items: 410, events: 4, gym: 5, categories: 28, reservations: 1 }
+      nextId: { items: 450, events: 4, gym: 5, categories: 32, reservations: 1 }
     };
   },
 

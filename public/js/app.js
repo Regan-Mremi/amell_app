@@ -83,8 +83,39 @@ async function renderMenuList(type, query) {
   const listEl = document.getElementById('menuList');
   if (!listEl) return;
   let categories;
-  try { categories = await sbGetMenu(type); }
-  catch { categories = AmellStore.getMenu(type); }
+  try {
+    categories = await sbGetMenu(type);
+  } catch {
+    categories = AmellStore.getMenu(type);
+  }
+  if (type === 'drinks') {
+    const defaults = AmellStore.defaultData();
+    const defaultCategories = defaults.categories
+      .filter(category => category.type === type)
+      .map(category => ({
+        ...category,
+        items: defaults.items.filter(item => item.category_id === category.id && item.is_available)
+      }));
+
+    defaultCategories.forEach(defaultCategory => {
+      let category = categories.find(existing =>
+        existing.name.trim().toLowerCase() === defaultCategory.name.trim().toLowerCase()
+      );
+      if (!category) {
+        category = { ...defaultCategory, items: [] };
+        categories.push(category);
+      }
+      const itemNames = new Set(category.items.map(item => (item.name || '').trim().toLowerCase()));
+      defaultCategory.items.forEach(item => {
+        const key = (item.name || '').trim().toLowerCase();
+        if (!itemNames.has(key)) {
+          category.items.push(item);
+          itemNames.add(key);
+        }
+      });
+    });
+    categories.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+  }
   let html = '';
   if (type === 'food') {
     html += '<div class="info-box">Swahili Food Menu • Prices in TZS • Mon–Fri 12:00–15:00 lunch specials available</div>';
